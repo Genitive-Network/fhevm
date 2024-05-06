@@ -1,7 +1,11 @@
 # 
 ## 合约部署地址
 Token Address：0x390DCAAc12e5Bf1bd9c44EeA3707728A2F851125
+
 Owner Address：0x21b7356966eAef9C6CCBeB81a226630A9c916797
+
+Owner Private Key: b009e7bbd3b2103dc8f7f3ba14a6704fa929eaa9a490c005c479bae902c131bb
+
 emit topic: 0x0251d16288ef8058040c27892a01dac42c24f59d4d47117b7a71be12477ce190
 ## 用户如何进行跨链操作
 调用 'cross_chain_transfer(bytes calldata encryptedAmount)'
