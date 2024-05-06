@@ -5,59 +5,58 @@ Controller层
 import logging
 import time
 
-from model import get_token_creation_block_height, get_stats_block_height, get_block_txs_by_height_with_filter
+from model import get_token_creation_block_height, get_stats_block_height, get_block_txs_by_height_with_filter, \
+    get_addr_logs_with_filter
 
 
-def block_scanner(token_hash: str, receiver_addr: str):
+def block_scanner(token_hash: str, emit_topic: str):
     """
     对所有区块进行遍历
     监控某个token向某个账户的流入情况
     :param token_hash:  目标token的合约地址
-    :param receiver_addr:  目标账户
     :return:
     """
     # 先获取token合约的部署tx TODO 根据持久化配置进行变更
-    first_block_height = get_token_creation_block_height(token_hash)
+    # first_block_height = get_token_creation_block_height(token_hash)
+    # block_height_ptr = first_block_height
 
     # 循环获取目标数据
-    items = []
-    block_height_ptr = first_block_height
+    item_map = {}
+
     while True:
-        # 获取当前链上区块高度
-        last_block_height = get_stats_block_height()
-        last_block_height = int(last_block_height)
-        # 判断是否有未扫描区块
-        while block_height_ptr < last_block_height:
-            logging.info("扫描区块：" + str(block_height_ptr))
-            try:
-                block_items = get_block_txs_by_height_with_filter(
-                    block_height_ptr,
-                    token_hash=token_hash,
-                    receiver_addr=receiver_addr
-                )
-                items.extend(block_items)
-            except Exception as e:
-                # TODO 标记扫描失败的区块
-                error_msg = "区块 " + str(block_height_ptr) + " 扫描失败"
-                logging.error(error_msg)
-                error_msg = f"Error occurred: {str(e)}"
-                logging.error(error_msg)
-            block_height_ptr += 1
-        # 显示当前已发现的txs
-        logging.info(items)
+        items = cross_chain_logs_view(get_addr_logs_with_filter(token_hash, emit_topic=emit_topic))
+        for item in items:
+            tx_hash = item['tx_hash']
+            if tx_hash not in item_map:
+                # TODO 发现新的跨链操作
+                logging.info("发现新的跨链操作：" + str(item))
+                item_map[tx_hash] = item
+        # 显示当前已发现的txs TODO 结果数据持久化
+        logging.info("当前已发现的跨链操作：" + str(item_map))
         # 每轮扫描间隔10秒
         time.sleep(10)
-    # TODO 结果数据持久化
     logging.info(items)
 
 
+def cross_chain_logs_view(items: list) -> list:
+    result = []
+    for item in items:
+        new_item = {
+            'tx_hash': item['tx_hash'],
+            'from_addr': item['topics'][1],
+            'amount': item['data'],
+            'block_number': item['block_number'],
+            'block_hash': item['block_hash']
+        }
+        result.append(new_item)
+    return result
+
+
 if __name__ == "__main__":
-    receiver_addr = "0xfCefe53c7012a075b8a711df391100d9c431c468"
-    token_hash = "0x0F11a75185746f64B24b7444a68B5C5A72e342F7"
-    block_height = 35647
+    token_hash = "0x390DCAAc12e5Bf1bd9c44EeA3707728A2F851125"
 
-    # data = get_blocks()
+    emit_topic = "0x0251d16288ef8058040c27892a01dac42c24f59d4d47117b7a71be12477ce190"
 
-    block_scanner(token_hash, receiver_addr)
+    block_scanner(token_hash, emit_topic)
 
     # logging.debug("data=" + str(data))

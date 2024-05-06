@@ -39,10 +39,11 @@ def api_get_addr(addr_hash: str, max_retries=3, wait_time=60):
     return None
 
 
-def api_get_addr_txs(addr_hash: str, max_retries=3, wait_time=60):
+def api_get_addr_txs(addr_hash: str, next_page_params=None, max_retries=3, wait_time=60):
     for retry in range(max_retries):
         try:
             url = BASE_URL + "/addresses/" + addr_hash + "/transactions"
+            url = modify_next_page_url(url, next_page_params)
             # print("url : ", url)
             transactions = requests.get(url)
             # print("transactions : ", transactions)
@@ -50,7 +51,29 @@ def api_get_addr_txs(addr_hash: str, max_retries=3, wait_time=60):
             # print("data : ", data)
             items = data["items"]
             next_page_params = data["next_page_params"]
-            return items
+            return [items, next_page_params]
+        except Exception as e:
+            error_msg = f"Error occurred: {str(e)}"
+        print(f"Retrying {retry + 1}/{max_retries}: {error_msg}")
+        if retry < max_retries - 1:
+            print(f"Waiting {wait_time} seconds before retrying...")
+            time.sleep(wait_time)
+    return None
+
+
+def api_get_addr_logs(addr_hash: str, next_page_params=None, max_retries=3, wait_time=60):
+    for retry in range(max_retries):
+        try:
+            url = BASE_URL + "/addresses/" + addr_hash + "/logs"
+            url = modify_next_page_url(url, next_page_params)
+            # print("url : ", url)
+            transactions = requests.get(url)
+            # print("transactions : ", transactions)
+            data = transactions.json()
+            # print("data : ", data)
+            items = data["items"]
+            next_page_params = data["next_page_params"]
+            return [items, next_page_params]
         except Exception as e:
             error_msg = f"Error occurred: {str(e)}"
         print(f"Retrying {retry + 1}/{max_retries}: {error_msg}")
@@ -210,10 +233,11 @@ def api_get_token_info(token_hash:str, max_retries=3, wait_time=60):
     return None
 
 
-def api_get_token_transfer(addr_hash:str, token_hash:str, max_retries=3, wait_time=60):
+def api_get_token_transfer(addr_hash:str, token_hash:str, next_page_params=None, max_retries=3, wait_time=60):
     for retry in range(max_retries):
         try:
             url = BASE_URL + "/addresses/" + addr_hash + "/token-transfers?filter=to&token=" + token_hash
+            url = modify_next_page_url(url, next_page_params)
             # print("url : ", url)
             transactions = requests.get(url)
             # print("transactions : ", transactions)
@@ -235,7 +259,7 @@ def api_get_token_transfer(addr_hash:str, token_hash:str, max_retries=3, wait_ti
 
 
 if __name__ == "__main__":
-    addr_hash = "0xa5e1defb98EFe38EBb2D958CEe052410247F4c80"
+    addr_hash = "0x390DCAAc12e5Bf1bd9c44EeA3707728A2F851125"
     token_hash = "0x0F11a75185746f64B24b7444a68B5C5A72e342F7"
     block_height = 106893
 
@@ -253,6 +277,10 @@ if __name__ == "__main__":
 
     # data = api_get_stats()
 
-    data = api_get_token_info(token_hash)
+    # data = api_get_token_info(token_hash)
+
+    # data = api_get_addr_txs(addr_hash)
+
+    data = api_get_addr_logs(addr_hash)
 
     logging.info("data: " + str(data))
