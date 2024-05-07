@@ -1,3 +1,8 @@
+# -*- coding: utf-8 -*-
 """
 配置文件
 """
+
+TOKEN_ADDRESS = "0xe2962b0eADb0B2b62Ebf73AFF534Aa76A56f1c6c"
+
+EMIT_TOPIC = "0x0251d16288ef8058040c27892a01dac42c24f59d4d47117b7a71be12477ce190"

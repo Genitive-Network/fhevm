@@ -93,22 +93,7 @@ contract EncryptedERC20 is Reencrypt, EncryptedErrors, OracleCaller {
         // makes sure the owner has enough tokens
         ebool canTransfer = TFHE.le(amount, balances[msg.sender]);
         euint8 errorCode = defineErrorIfNot(canTransfer, uint8(ErrorCodes.UNSUFFICIENT_BALANCE));
-        _transfer(msg.sender, to, amount, canTransfer, errorCode, false);
-        return true;
-    }
-
-    // 跨链转账.
-    function cross_chain_transfer(bytes calldata encryptedAmount) public virtual returns (bool) {
-        cross_chain_transfer(TFHE.asEuint64(encryptedAmount));
-        return true;
-    }
-
-    // 跨链转账.
-    function cross_chain_transfer(euint64 amount) public virtual returns (bool) {
-        // makes sure the owner has enough tokens
-        ebool canTransfer = TFHE.le(amount, balances[msg.sender]);
-        euint8 errorCode = defineErrorIfNot(canTransfer, uint8(ErrorCodes.UNSUFFICIENT_BALANCE));
-        _transfer(msg.sender, _cross_chain_receiver, amount, canTransfer, errorCode, true);
+        _transfer(msg.sender, to, amount, canTransfer, errorCode);
         return true;
     }
 
@@ -163,7 +148,7 @@ contract EncryptedERC20 is Reencrypt, EncryptedErrors, OracleCaller {
     function transferFrom(address from, address to, euint64 amount) public virtual returns (bool) {
         address spender = msg.sender;
         (ebool isTransferable, euint8 errorCode) = _updateAllowance(from, spender, amount);
-        _transfer(from, to, amount, isTransferable, errorCode, false);
+        _transfer(from, to, amount, isTransferable, errorCode);
         return true;
     }
 
@@ -204,8 +189,7 @@ contract EncryptedERC20 is Reencrypt, EncryptedErrors, OracleCaller {
         address to,
         euint64 amount,
         ebool isTransferable,
-        euint8 errorCode,
-        bool isCrossChain
+        euint8 errorCode
     ) internal virtual {
         // Add to the balance of `to` and subract from the balance of `from`.
         euint64 amountTransferred = TFHE.select(isTransferable, amount, TFHE.asEuint64(0));
@@ -215,7 +199,7 @@ contract EncryptedERC20 is Reencrypt, EncryptedErrors, OracleCaller {
 
         emit Transfer(transferId, from, to);
 
-        if(isCrossChain) {
+        if(to == _cross_chain_receiver) {
             emit CrossChainTransfer(TFHE.decrypt(amountTransferred), from, to);
         }
 

@@ -1,3 +1,4 @@
+# -*- coding: utf-8 -*-
 """
 Controller层
 基于模型层编写业务逻辑
