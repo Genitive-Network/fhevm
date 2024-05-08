@@ -6,7 +6,7 @@
 """
 import logging
 
-from api import api_get_blocks, api_get_block_txs_by_height, api_get_tx, api_get_addr, api_get_stats, \
+from explorer_api import api_get_blocks, api_get_block_txs_by_height, api_get_tx, api_get_addr, api_get_stats, \
     api_get_token_transfer, api_get_addr_txs, api_get_addr_logs
 
 

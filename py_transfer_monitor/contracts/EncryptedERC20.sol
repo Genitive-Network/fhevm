@@ -27,7 +27,7 @@ contract EncryptedERC20 is Reencrypt, EncryptedErrors, OracleCaller {
     uint64 internal _totalSupply;
     string private _name;
     string private _symbol;
-    uint8 public constant decimals = 6;
+    uint8 public constant decimals = 8;
 
     // 跨链时需要将token打入该地址
     address public _cross_chain_receiver;
@@ -68,15 +68,8 @@ contract EncryptedERC20 is Reencrypt, EncryptedErrors, OracleCaller {
     }
 
     // Increase sender's balance by the given `amount`.
-    function _mint(uint64 amount, address to) internal virtual {
-        require(_cross_chain_receiver == msg.sender, "Only Contract Administrator Can Mint");
-        balances[to] = TFHE.add(balances[to], amount); // overflow impossible because of next line
-        _totalSupply = _totalSupply + amount;
-        emit Mint(to, amount);
-    }
-
-    // Increase sender's balance by the given `amount`.
     function mint(uint64 amount, address to) public virtual {
+        require(_cross_chain_receiver == msg.sender, "Only Contract Administrator Can Mint");
         balances[to] = TFHE.add(balances[to], amount); // overflow impossible because of next line
         _totalSupply = _totalSupply + amount;
         emit Mint(to, amount);

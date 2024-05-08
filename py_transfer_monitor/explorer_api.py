@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-API交互层
+fhevm 区块链浏览器 API交互层
 """
 import requests
 import time

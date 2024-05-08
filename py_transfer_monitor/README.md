@@ -15,5 +15,6 @@ emit topic: 0x0251d16288ef8058040c27892a01dac42c24f59d4d47117b7a71be12477ce190
 1. 进入py_transfer_monitor目录
 2. 执行如下命令：
 ```
+export CORSS_CHAIN_BASE_URL="http://localhost:8006"
 python main.py
 ```
