@@ -7,10 +7,10 @@ import logging
 import time
 
 from data_fetcher import get_addr_logs_with_filter
-from py_transfer_monitor.config import TOKEN_ADDRESS, EMIT_TOPIC, CORSS_CHAIN_DONE_DATA_PATH, \
+from config import TOKEN_ADDRESS, EMIT_TOPIC, CORSS_CHAIN_DONE_DATA_PATH, \
     CORSS_CHAIN_PENDING_DATA_PATH
-from py_transfer_monitor.crosschain_caller import cross_chain_mint
-from py_transfer_monitor.persistence import load, save
+from crosschain_caller import cross_chain_mint
+from persistence import load, save
 
 
 def block_scanner(token_hash: str, emit_topic: str):
@@ -48,7 +48,7 @@ def block_scanner(token_hash: str, emit_topic: str):
                     logging.info("Cross Chain Failed：" + str(simple_view))
                     cc_pending_item_map[tx_hash] = item
         # 显示当前已发现的txs
-        logging.info("Cross Chain Done List：" + str(cc_done_item_map))
+        # logging.info("Cross Chain Done List：" + str(cc_done_item_map))
         logging.info("Cross Chain Pending List：" + str(cc_pending_item_map))
         # 每轮扫描间隔10秒
         if save(cc_done_item_map, CORSS_CHAIN_DONE_DATA_PATH) and save(cc_pending_item_map,
@@ -75,7 +75,7 @@ def logs_view(items: list) -> list:
     for item in items:
         new_item = {
             'tx_hash': item['tx_hash'],
-            'from_addr': item['topics'][1],
+            'address': item['topics'][1],
             'amount': item['data'],
             'block_number': item['block_number'],
             'block_hash': item['block_hash']
@@ -86,13 +86,16 @@ def logs_view(items: list) -> list:
 
 def logs_simple_view(item: dict) -> dict:
     return {
-        'address': item['from_addr'],
+        'address': item['address'],
         'amount': item['amount']
     }
 
 
 def cross_chain_request(item: dict) -> bool:
-    return cross_chain_mint(to="0x21b7356966eAef9C6CCBeB81a226630A9c916797", amount=5)
+    address = item["address"]
+    address = "0x" + address[len(address) - 40:len(address)]
+    amount = int(item["amount"], 16)
+    return cross_chain_mint(to=address, amount=amount)
 
 
 if __name__ == "__main__":
